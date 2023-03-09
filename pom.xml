@@ -28,7 +28,7 @@
 	</licenses>
 
 	<scm>
-		<connection>https://github.com/tntfyf/cnaworld-mybatis-plus</connection>
+		<connection>https://github.com/tntfyf/cnaworld-mybatis-plus.git</connection>
 		<url>https://github.com/tntfyf/cnaworld-mybatis-plus</url>
 	</scm>
 
