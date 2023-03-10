@@ -31,9 +31,8 @@ public class CustomizedMetaObjectHandler implements MetaObjectHandler {
         try {
             //在执行mybatisPlus的insert()时，为我们自动给某些字段填充值，这样的话，我们就不需要手动给insert()里的实体类赋值了
             //需要搭配数据库规范
-            CnaworldMybatisPlusProperties.MybatisPlusProperties mybatisPlus = cnaworldMybatisPlusProperties.getMybatisPlus();
-            if (mybatisPlus != null) {
-                List<CnaworldMybatisPlusProperties.MybatisPlusProperties.FillStrategyField> fillStrategyField = mybatisPlus.getFillStrategyField();
+            if (cnaworldMybatisPlusProperties != null) {
+                List<CnaworldMybatisPlusProperties.FillStrategyField> fillStrategyField = cnaworldMybatisPlusProperties.getFillStrategyField();
                 if (ObjectUtils.isNotEmpty(fillStrategyField)){
                     fillStrategyField.forEach(t->{
                         if(StringUtils.isNotBlank(t.getFieldName())){

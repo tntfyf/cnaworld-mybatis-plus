@@ -1,1 +1,2 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.cnaworld.framework.infrastructure.config.CnaMybatisPlusAutoWiredConfig
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  cn.cnaworld.framework.infrastructure.config.CnaMybatisPlusAutoWiredConfig

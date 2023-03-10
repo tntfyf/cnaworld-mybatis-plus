@@ -11,7 +11,7 @@
 
 	<groupId>cn.cnaworld.framework</groupId>
 	<artifactId>mybatis-plus</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<name>cnaworld-mybatis-plus</name>
 	<description>cnaworld-mybatis-plus</description>
 	<url>https://github.com/tntfyf/cnaworld-mybatis-plus</url>

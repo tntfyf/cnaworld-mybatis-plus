@@ -13,92 +13,78 @@ import java.util.List;
  * @date 2023/1/30
  * @since 1.0
  */
-@ConfigurationProperties(prefix="cnaworld")
+@ConfigurationProperties(prefix="cnaworld.mybatis-plus")
 @Getter
 @Setter
 @ToString
 public class CnaworldMybatisPlusProperties {
 
-    private MybatisPlusProperties mybatisPlus;
+    /**
+     * cnaworld-mybatis-plus 总开关
+     */
+    private boolean enabled = true;
 
     /**
-     * mybatisPlus配置
+     * 开启16位雪花ID
+     */
+    private boolean snowFlake = true;
+
+    /**
+     * insert时，自动获取 fillStrategyField 中的属性进行填充 ，填充值采用类型的初始化默认值
+     */
+    private boolean autoInsertFill = true;
+
+    /**
+     * 乐观锁支持 OptimisticLockerInnerInterceptor , wrapperMode 为 true
+     */
+    private boolean optimisticLocker = true;
+
+    /**
+     * 根据@Version注解，update时自动更新乐观锁字段
+     */
+    private boolean updateOptimisticLockerField = true;
+
+    /**
+     * 逻辑删除扩展方法注入，directDelete 系列和 recover 系列
+     */
+    private boolean functionExtension = true;
+
+    /**
+     * 自动填充 insert时，自动获取遍历属性进行填充 ，填充值采用类型的初始化默认值
+     */
+    private List<FillStrategyField> fillStrategyField;
+
+    /**
+     * 属性实体
      * @author Lucifer
      * @date 2023/1/30
-     * @since 1.0.0
+     * @since 1.0
      */
     @Getter
     @Setter
     @ToString
-    public static class MybatisPlusProperties {
+    public static class FillStrategyField {
 
         /**
-         * cnaworld-mybatis-plus 总开关
+         * 填充字段
          */
-        private boolean enabled = true;
+        private String fieldName;
 
         /**
-         * 开启16位雪花ID
+         * 填充值
          */
-        private boolean snowFlake = true;
+        private Object fieldValue;
 
         /**
-         * insert时，自动获取 fillStrategyField 中的属性进行填充 ，填充值采用类型的初始化默认值
+         * 填充类型
          */
-        private boolean autoInsertFill = true;
+        private Class<?> fieldClass;
 
         /**
-         * 乐观锁支持 OptimisticLockerInnerInterceptor , wrapperMode 为 true
+         * 填充值实现
          */
-        private boolean optimisticLocker = true;
+        private Class<?> fieldProcessorClass;
 
-        /**
-         * 根据@Version注解，update时自动更新乐观锁字段
-         */
-        private boolean updateOptimisticLockerField = true;
-
-        /**
-         * 逻辑删除扩展方法注入，directDelete 系列和 recover 系列
-         */
-        private boolean functionExtension = true;
-
-        /**
-         * 自动填充 insert时，自动获取遍历属性进行填充 ，填充值采用类型的初始化默认值
-         */
-        private List<FillStrategyField> fillStrategyField;
-
-        /**
-         * 属性实体
-         * @author Lucifer
-         * @date 2023/1/30
-         * @since 1.0
-         */
-        @Getter
-        @Setter
-        @ToString
-        public static class FillStrategyField {
-
-            /**
-             * 填充字段
-             */
-            private String fieldName;
-
-            /**
-             * 填充值
-             */
-            private Object fieldValue;
-
-            /**
-             * 填充类型
-             */
-            private Class<?> fieldClass;
-
-            /**
-             * 填充值实现
-             */
-            private Class<?> fieldProcessorClass;
-
-        }
     }
 
 }
