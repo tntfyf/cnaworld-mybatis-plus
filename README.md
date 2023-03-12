@@ -1,5 +1,5 @@
 # Spring boot 快速实现 mybatis-plus 的功能增强 ，如16位雪花ID ，逻辑删除恢复 ，乐观锁等 
-## 1.0.1版本 
+## 1.0.2版本 
 
 作用：
 1. 提供16位雪花ID实现，解决默认19位实现导致的前端精度问题
@@ -18,7 +18,7 @@
    <dependency>
        <groupId>cn.cnaworld.framework</groupId>
        <artifactId>mybatis-plus</artifactId>
-       <version>1.0.1</version>
+       <version>1.0.2</version>
    </dependency>
    ```
 

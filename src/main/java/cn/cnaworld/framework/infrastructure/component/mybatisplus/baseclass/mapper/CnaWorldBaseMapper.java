@@ -1,5 +1,6 @@
 package cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.mapper;
 
+
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Constants;
