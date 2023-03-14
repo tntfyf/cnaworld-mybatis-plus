@@ -1,5 +1,5 @@
-# Spring boot 快速实现 mybatis-plus 的功能增强 ，如16位雪花ID ，逻辑删除恢复 ，乐观锁等 
-## 1.0.3版本 
+# Spring boot 快速实现 mybatis-plus 的功能增强 ，如16位雪花ID ，逻辑删除恢复 ，乐观锁等
+## 1.0.3版本
 
 作用：
 1. 提供16位雪花ID实现，解决默认19位实现导致的前端精度问题
@@ -259,10 +259,80 @@
          	}
          }
          ```
+9. 客户端中也加入此基础Entity类 ， 放到客户端方便切换openapi 2.0、3.0 ，mybatisplus.generator 提供的模板默认是2.0的故，此类也默认采用2.0的实现。可采用自定义模板的方式调整为3.0实现。
 
-9. 启动注册
+```java
+package cn.cnaworld.base.infrastructure.component.baseclass;
 
-   启动时，会打印开启的组件的注册日志。
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.Version;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+/**
+ * 基本实体类
+ * @author Lucifer
+ * @date 2023/3/5
+ * @since 1.0.0
+ */
+@Getter
+@Setter
+@ToString
+@ApiModel(value = "CnaWorldBaseEntity对象")
+public class CnaWorldBaseEntity implements Serializable {
+
+    /**
+     * 逻辑删除
+     */
+    @ApiModelProperty(value = "逻辑删除")
+    @TableField(value = "deleted_db",fill = FieldFill.INSERT)
+    @TableLogic
+    private Boolean deletedDb;
+
+    /**
+     * 创建者
+     */
+    @ApiModelProperty(value = "创建者")
+    @TableField("create_by_db")
+    private String createByDb;
+
+    /**
+     * 更新者
+     */
+    @ApiModelProperty(value = "更新者")
+    @TableField("update_by_db")
+    private String updateByDb;
+
+    /**
+     * 创建日期
+     */
+    @ApiModelProperty(value = "创建日期")
+    @TableField(value = "create_time_db",fill = FieldFill.INSERT)
+    private LocalDateTime createTimeDb;
+
+    /**
+     * 更新日期
+     */
+    @ApiModelProperty(value = "更新日期")
+    @TableField(value = "update_time_db",fill = FieldFill.INSERT)
+    @Version
+    private LocalDateTime updateTimeDb;
+
+}
+
+```
+
+10. 启动注册
+
+启动时，会打印开启的组件的注册日志。
 
    ```lua
    2023-03-07 23:24:31.263  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus optimistic-locker initialized ！
@@ -271,3 +341,5 @@
    2023-03-07 23:24:31.300  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus extend method initialized ！
    2023-03-07 23:24:31.304  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus 16-snowflake initialized ！
    ```
+11. 客户端应用demo
+    [应用demo](http://t.csdn.cn/nX3e4)
