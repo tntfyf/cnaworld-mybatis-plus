@@ -2,6 +2,7 @@ package cn.cnaworld.framework.infrastructure.component.mybatisplus.handler;
 
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.handler.impl.FieldProcessor;
 import cn.cnaworld.framework.infrastructure.properties.CnaworldMybatisPlusProperties;
+import cn.cnaworld.framework.infrastructure.utils.CnaLogUtil;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -52,7 +53,7 @@ public class CustomizedMetaObjectHandler implements MetaObjectHandler {
                 }
             }
         } catch (Exception e) {
-            log.error("cnaworld mybatis-plus auto-insert-fill error : {}",e.getMessage(),e);
+            CnaLogUtil.error(log,"cnaworld mybatis-plus auto-insert-fill error : {}",e.getMessage(),e);
         }
     }
 
@@ -85,11 +86,11 @@ public class CustomizedMetaObjectHandler implements MetaObjectHandler {
         try {
             obj = fieldProcessorClass.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            log.error("cnaworld aop auto-insert-fill-processor-class 解析失败 ：{}" , fieldProcessorClass);
+            CnaLogUtil.error(log,"cnaworld aop auto-insert-fill-processor-class 解析失败 ：{}" , fieldProcessorClass);
             return null;
         }
         if (!fieldProcessorClass.isInstance(obj)) {
-            log.error("cnaworld aop auto-insert-fill-processor-class 解析失败 ：{}" , fieldProcessorClass);
+            CnaLogUtil.error(log,"cnaworld aop auto-insert-fill-processor-class 解析失败 ：{}" , fieldProcessorClass);
             return null;
         }
         fieldProcessor =(FieldProcessor) obj;
