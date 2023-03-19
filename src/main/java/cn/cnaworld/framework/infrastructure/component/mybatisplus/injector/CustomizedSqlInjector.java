@@ -11,7 +11,6 @@ import cn.cnaworld.framework.infrastructure.component.mybatisplus.injector.recov
 import com.baomidou.mybatisplus.core.injector.AbstractMethod;
 import com.baomidou.mybatisplus.core.injector.DefaultSqlInjector;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -21,7 +20,6 @@ import java.util.List;
  * @date 2023/3/5
  * @since 1.0.0
  */
-@Slf4j
 public class CustomizedSqlInjector extends DefaultSqlInjector {
 
     @Override
