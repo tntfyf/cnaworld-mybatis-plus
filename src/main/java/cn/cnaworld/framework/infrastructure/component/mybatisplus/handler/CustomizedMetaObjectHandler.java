@@ -2,7 +2,7 @@ package cn.cnaworld.framework.infrastructure.component.mybatisplus.handler;
 
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.handler.impl.FieldProcessor;
 import cn.cnaworld.framework.infrastructure.properties.CnaworldMybatisPlusProperties;
-import cn.cnaworld.framework.infrastructure.utils.CnaLogUtil;
+import cn.cnaworld.framework.infrastructure.utils.log.CnaLogUtil;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
