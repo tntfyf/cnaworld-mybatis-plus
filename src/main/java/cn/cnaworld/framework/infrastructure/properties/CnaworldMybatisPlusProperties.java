@@ -1,5 +1,6 @@
 package cn.cnaworld.framework.infrastructure.properties;
 
+import cn.cnaworld.framework.infrastructure.component.mybatisplus.statics.enums.EncryptAlgorithm;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -55,6 +56,12 @@ public class CnaworldMybatisPlusProperties {
     private List<FillStrategyField> fillStrategyField;
 
     /**
+     * 自动加密解密
+     */
+    private FieldEncrypt fieldEncrypt;
+
+
+    /**
      * 属性实体
      * @author Lucifer
      * @date 2023/1/30
@@ -84,6 +91,34 @@ public class CnaworldMybatisPlusProperties {
          * 填充值实现
          */
         private Class<?> fieldProcessorClass;
+
+    }
+
+    /**
+     * 自动加密
+     * @author Lucifer
+     * @date 2023/1/30
+     * @since 1.0
+     */
+    @Getter
+    @Setter
+    @ToString
+    public static class FieldEncrypt {
+
+        /**
+         * 加密密钥
+         */
+        private String key;
+
+        /**
+         * 加密算法
+         */
+        private EncryptAlgorithm algorithm;
+
+        /**
+         * 自定义处理器
+         */
+        private String encryptor;
 
     }
 

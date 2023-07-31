@@ -20,7 +20,7 @@ import java.util.Map;
  * {@link com.baomidou.mybatisplus.extension.service.IService}
  * {@link com.baomidou.mybatisplus.extension.service.impl.ServiceImpl}
  */
-public interface CnaWorldBaseMapper<T> extends BaseMapper<T> {
+public interface CnaworldBaseMapper<T> extends BaseMapper<T> {
 
     /**
      * 根据 entity 条件，恢复记录
@@ -60,7 +60,7 @@ public interface CnaWorldBaseMapper<T> extends BaseMapper<T> {
      * @param idList 主键ID列表(不能为 null 以及 empty)
      * @return 操作数
      */
-    int recoverBatchIds(@Param(Constants.COLLECTION) Collection<? extends Serializable> idList);
+    int recoverBatchIds(@Param(Constants.COLL) Collection<? extends Serializable> idList);
 
     /**
      * 根据 entity 条件，删除记录
@@ -100,6 +100,6 @@ public interface CnaWorldBaseMapper<T> extends BaseMapper<T> {
      * @param idList 主键ID列表(不能为 null 以及 empty)
      * @return 操作数
      */
-    int directDeleteBatchIds(@Param(Constants.COLLECTION) Collection<? extends Serializable> idList);
+    int directDeleteBatchIds(@Param(Constants.COLL) Collection<? extends Serializable> idList);
 
 }

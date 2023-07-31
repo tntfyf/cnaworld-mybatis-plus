@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.core.toolkit.ExceptionUtils;
 import com.baomidou.mybatisplus.core.toolkit.ReflectionKit;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -40,9 +41,10 @@ import java.util.concurrent.ConcurrentHashMap;
 				method = "update",
 				args = { MappedStatement.class, Object.class })//需要代理的对象和方法
 })
-public class CnaWorldInnerInterceptor implements Interceptor{
+public class CnaworldInnerInterceptor implements Interceptor{
 
 	private static final Map<String, Class<?>> ENTITY_CLASS_CACHE = new ConcurrentHashMap<>();
+	private static final Map<String, String> EXCLUDE_ENTITY_CLASS_CACHE = new ConcurrentHashMap<>();
 
 	@Override
 	public Object intercept(Invocation invocation) throws Throwable {
@@ -52,11 +54,21 @@ public class CnaWorldInnerInterceptor implements Interceptor{
 		Object parameterObject = args[1];
 		if (SqlCommandType.UPDATE == ms.getSqlCommandType()) {
 			String msId = ms.getId();
+			if(StringUtils.isNotBlank(EXCLUDE_ENTITY_CLASS_CACHE.get(msId))){
+				return invocation.proceed();
+			}
 			Class<?> entityClass = ENTITY_CLASS_CACHE.get(msId);
+			BoundSql boundSql = ms.getBoundSql(parameterObject);
+			String sql = boundSql.getSql();
 			if (null == entityClass) {
 				try {
 					String className = msId.substring(0, msId.lastIndexOf(46));
 					entityClass  = ReflectionKit.getSuperClassGenericType(Class.forName(className), Mapper.class, 0);
+					String tableName = getMethodName(sql.substring(sql.indexOf("UPDATE")+6, sql.indexOf("SET")).trim()+"Po");
+					if(!entityClass.getSimpleName().equalsIgnoreCase(tableName)){
+						EXCLUDE_ENTITY_CLASS_CACHE.put(msId,msId);
+						return invocation.proceed();
+					}
 					ENTITY_CLASS_CACHE.put(msId, entityClass);
 				} catch (ClassNotFoundException var11) {
 					throw ExceptionUtils.mpe(var11);
@@ -69,19 +81,14 @@ public class CnaWorldInnerInterceptor implements Interceptor{
 
 			String versionColumn = versionField.getColumn();
 			Class<?> propertyType = versionField.getPropertyType();
-
-			BoundSql boundSql = ms.getBoundSql(parameterObject);
-			String sql = boundSql.getSql();
-			if (sql.contains(versionColumn + "=?")){
-				return invocation.proceed();
-			}else {
+			if (!sql.contains(versionColumn + "=?")) {
 				String replaceStr = getUpdatedVersionVal(propertyType, versionColumn);
-				sql=sql.replace("SET", replaceStr);
+				sql = sql.replace("SET", replaceStr);
 				// 包装sql后，重置到invocation中
 				resetSql2Invocation(invocation, sql);
 				// 返回，继续执行
-				return invocation.proceed();
 			}
+			return invocation.proceed();
 		}
 
 		// 返回，继续执行
@@ -155,7 +162,7 @@ public class CnaWorldInnerInterceptor implements Interceptor{
 
 	protected String getUpdatedVersionVal(Class<?> clazz,String versionColumn) {
 
-		StringBuffer replaceStrBuf= new StringBuffer("SET ");
+		StringBuilder replaceStrBuf= new StringBuilder("SET ");
 		replaceStrBuf.append(versionColumn)
 				.append("=");
 		if (!Long.TYPE.equals(clazz) && !Long.class.equals(clazz)) {
@@ -178,5 +185,30 @@ public class CnaWorldInnerInterceptor implements Interceptor{
 
 		return replaceStrBuf.toString();
 	}
+
+	/**
+	 * 首字母大写(进行字母的ascii编码前移，效率是最高的)
+	 *
+	 * @param fieldName 需要转化的字符串
+	 */
+	public static String getMethodName(String fieldName) throws Exception {
+		char[] chars = fieldName.toCharArray();
+		chars[0] = toUpperCase(chars[0]);
+		return String.valueOf(chars);
+	}
+
+
+	/**
+	 * 字符转成大写
+	 *
+	 * @param c 需要转化的字符
+	 */
+	public static char toUpperCase(char c) {
+		if (97 <= c && c <= 122) {
+			c ^= 32;
+		}
+		return c;
+	}
+
 
 }

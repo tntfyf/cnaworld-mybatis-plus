@@ -1,5 +1,5 @@
 # Spring boot 快速实现 mybatis-plus 的功能增强 ，如16位雪花ID ，逻辑删除恢复 ，乐观锁等
-## 1.0.9版本
+## 1.1.3版本
 
 作用：
 1. 提供16位雪花ID实现，解决默认19位实现导致的前端精度问题
@@ -143,7 +143,7 @@
          package cn.cnaworld.cnaworldaoptest;
          
          import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.entity.CnaWorldBaseEntity;
-         import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.mapper.CnaWorldBaseMapper;
+         import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.mapper.CnaworldBaseMapper;
          import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.service.CnaWorldBaseService;
          import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.service.impl.CnaWorldBaseServiceImpl;
          import com.baomidou.mybatisplus.annotation.IdType;
@@ -239,7 +239,7 @@
          					//.formatServiceImplFileName(null)//格式化service实现类文件名称	
          				//mapperBuilder
          				.mapperBuilder()//mapperBuilder
-         					.superClass(CnaWorldBaseMapper.class)//设置父类
+         					.superClass(CnaworldBaseMapper.class)//设置父类
          					//.cache(null)//设置缓存实现类
          					//.formatMapperFileName("")//格式化mapper文件名称
          					//.formatXmlFileName("")//格式化xml实现类文件名称
