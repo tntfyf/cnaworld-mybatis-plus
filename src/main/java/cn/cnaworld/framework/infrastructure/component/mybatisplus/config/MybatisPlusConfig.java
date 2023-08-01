@@ -3,7 +3,6 @@ package cn.cnaworld.framework.infrastructure.component.mybatisplus.config;
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.handler.CustomizedMetaObjectHandler;
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.injector.CustomizedSqlInjector;
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.interceptor.CnaworldAutoEncryptInterceptor;
-import cn.cnaworld.framework.infrastructure.component.mybatisplus.interceptor.CnaworldInnerInterceptor;
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.snowflake.CustomerIdGenerator;
 import cn.cnaworld.framework.infrastructure.utils.log.CnaLogUtil;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
@@ -50,13 +49,6 @@ public class MybatisPlusConfig {
     public CustomizedMetaObjectHandler customizedMetaObjectHandler() {
         CnaLogUtil.info(log,"cnaworld mybatis-plus auto-insert-fill initialized");
         return new CustomizedMetaObjectHandler();
-    }
-
-    @Bean
-    @ConditionalOnExpression("#{environment['cnaworld.mybatis-plus.update-optimistic-locker-field'] ==null || !environment['cnaworld.mybatis-plus.update-optimistic-locker-field'].contains('false')}")
-    public CnaworldInnerInterceptor cnaWorldInnerInterceptor() {
-        CnaLogUtil.info(log,"cnaworld mybatis-plus update-optimistic-locker-field initialized");
-        return new CnaworldInnerInterceptor();
     }
 
     @Bean

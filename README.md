@@ -8,8 +8,6 @@
 
 3. 默认开启乐观锁实现 OptimisticLockerInnerInterceptor
 
-4. 数据更新时对乐观锁字段累增后填充。解决mybatis-plus对自定义方法、逻辑删除方法更新时无法对数据乐观锁字段进行更新问题
-
 5. 扩展逻辑删除相关方法，提供逻辑恢复和直接删除扩展方法
 
 6. 客户端配置
@@ -32,7 +30,6 @@
        function-extension: true #扩展逻辑删除相关方法，提供逻辑恢复和直接删除扩展方法。默认true开启。
        snow-flake: true #提供16位雪花ID实现。默认true开启。
        optimistic-locker: true #提供乐观锁实现 OptimisticLockerInnerInterceptor。默认true开启。
-       update-optimistic-locker-field: true #数据更新时对乐观锁字段累增后填充。默认true开启。
        fill-strategy-field: #数据初始化时默认填充属性集合
          - field-name: "createTimeDb" #需填充的entity字段名称，需要注解 @TableField(value = "create_time_db",fill = FieldFill.INSERT) 中开启fill = FieldFill.INSERT
            field-class: java.time.LocalDateTime #默认填充字段类型，Date 、Timestamp 、 LocalDateTime 默认取当前时间，Long 、Integer 默认取0。
@@ -41,7 +38,7 @@
          - field-name: "deletedDb"
            field-value: false #填充值
    ```
-
+   
 8. 具体使用
 
    1. 16位雪花ID使用方式
@@ -66,32 +63,21 @@
 
       2. 需要entity字段添加@Version注解
 
-      3. ```java
+      3. mybatis-plus对自定义方法、逻辑删除方法更新时无法对数据乐观锁字段进行更新问题，建议使用updateTimeDb作为乐观锁字段，并在数据库层面设置根据当前时间戳更新。mysql 5.6以上支持，PG可使用触发器支持。
+   
+      4. ```java
          @Version
          private LocalDateTime updateTimeDb;
          ```
-
-   4. 数据更新时对乐观锁字段累增后填充
-
-      1. 官网乐观锁插件 OptimisticLockerInnerInterceptor 问题：对于逻辑删除、自定义方法、入参不存在乐观锁字段的方法 ，插件都无法对数据库的乐观锁字段的值进行累加或者更新
-
-      2. 需要entity字段添加@Version注解
-
-      3. ```java
-         @Version
-         private LocalDateTime updateTimeDb;
-         ```
-
-      4. 对所有添加乐观锁注解的字段，在执行Update语句时进行更新，包括逻辑删除、逻辑恢复、自定义方法
 
    5. 扩展逻辑删除相关方法，提供逻辑恢复和直接删除扩展方法
 
       1. 若entity字段增加逻辑删除注解支持，则所有的mybatis-plus提供的Service删除方法及ServiceImpl 的 remove()、delete() , 方法都会开启逻辑删除
 
       2. 需要由继承mybatis-plus 的IService<T>、ServiceImpl<TMapper, T>、BaseMapper<T>，改为继承CnaWorldBaseService<T>、CnaWorldBaseServiceImpl<TMapper, T> 、CnaWorldBaseMapper<T>
-
+   
       3. 同时提供了CnaWorldBaseEntity 可供使用
-
+   
          1. 建议使用updateTimeDb同时作为乐观锁字段
          2. 建议使用deletedDb同时作为逻辑删除字段
 
@@ -115,9 +101,9 @@
          //直接删除
          default boolean directRemoveByIds(Collection<? extends Serializable> idList) 
          ```
-
+   
       5. CnaWorldBaseMapper 扩展方法提供逻辑恢复 和 直接删除
-
+   
          ```java
          //逻辑恢复
          int recover(@Param(Constants.WRAPPER) Wrapper<T> queryWrapper);
@@ -136,9 +122,9 @@
          //直接删除
          int directDeleteBatchIds(@Param(Constants.COLLECTION) Collection<? extends Serializable> idList);
          ```
-
+   
       6. 自动生成代码类,可直接配置 superClass 继承扩展实现
-
+   
          ```java
          package cn.cnaworld.cnaworldaoptest;
          
@@ -259,6 +245,7 @@
          	}
          }
          ```
+   
 9. 客户端中也加入此基础Entity类 ， 放到客户端方便切换openapi 2.0、3.0 ，mybatisplus.generator 提供的模板默认是2.0的故，此类也默认采用2.0的实现。可采用自定义模板的方式调整为3.0实现。
 
 ```java

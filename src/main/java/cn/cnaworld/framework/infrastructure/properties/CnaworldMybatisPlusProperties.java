@@ -41,11 +41,6 @@ public class CnaworldMybatisPlusProperties {
     private boolean optimisticLocker = true;
 
     /**
-     * 根据@Version注解，update时自动更新乐观锁字段
-     */
-    private boolean updateOptimisticLockerField = true;
-
-    /**
      * 逻辑删除扩展方法注入，directDelete 系列和 recover 系列
      */
     private boolean functionExtension = true;
