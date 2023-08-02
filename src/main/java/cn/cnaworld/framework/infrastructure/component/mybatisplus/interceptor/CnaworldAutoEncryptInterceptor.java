@@ -5,16 +5,12 @@ import cn.cnaworld.framework.infrastructure.component.mybatisplus.processor.Encr
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.processor.impl.AESEncryptProcessor;
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.statics.enums.EncryptAlgorithm;
 import cn.cnaworld.framework.infrastructure.properties.CnaworldMybatisPlusProperties;
-import cn.cnaworld.framework.infrastructure.utils.encryption.CnaAesUtil;
 import cn.cnaworld.framework.infrastructure.utils.log.CnaLogUtil;
-import com.baomidou.mybatisplus.core.mapper.Mapper;
-import com.baomidou.mybatisplus.core.toolkit.ExceptionUtils;
-import com.baomidou.mybatisplus.core.toolkit.ReflectionKit;
+import cn.cnaworld.framework.infrastructure.utils.object.CnaObjectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.executor.Executor;
-import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.plugin.Interceptor;
@@ -53,120 +49,144 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 
 	@Autowired
 	private CnaworldMybatisPlusProperties cnaworldMybatisPlusProperties;
-
-	private static final Map<Class<?>,Map<Field,CnaFieldEncrypt>> FIELD_CACHE = new ConcurrentHashMap<>();
-
-	private static final Map<String, Class<?>> ENTITY_CLASS_CACHE = new ConcurrentHashMap<>();
+   //缓存实体类的哪些属性是目标属性，以及属性的注解值
+	private static final Map<Class<?>,Map<Field,CnaFieldEncrypt>> ENTITY_FIELD_CACHE = new ConcurrentHashMap<>();
 
 	@Override
 	public Object intercept(Invocation invocation) throws Throwable {
 
 		final Object[] args = invocation.getArgs();
 		MappedStatement ms = (MappedStatement) args[0];
-
-		String msId = ms.getId();
-		Class<?> entityClass = ENTITY_CLASS_CACHE.get(msId);
-		if (null == entityClass) {
-			try {
-				String className = msId.substring(0, msId.lastIndexOf(46));
-				entityClass  = ReflectionKit.getSuperClassGenericType(Class.forName(className), Mapper.class, 0);
-				ENTITY_CLASS_CACHE.put(msId, entityClass);
-			} catch (ClassNotFoundException var11) {
-				throw ExceptionUtils.mpe(var11);
-			}
-		}
-
-		//判断是select语句
 		if (SqlCommandType.SELECT == ms.getSqlCommandType()) {
 			//执行并获取返回结果
 			Object proceed = invocation.proceed();
-			//判断是不是list
+			if(!CnaObjectUtil.isObject(proceed)){
+				return proceed;
+			}
+			Map<Field, CnaFieldEncrypt> fieldMap = getEntityFieldCache(proceed);
 			if(proceed instanceof List){
 				//讲对象转换成list
 				List<?> resultList = (List<?>) proceed;
 				if(ObjectUtils.isNotEmpty(resultList)){
-					//得到list的泛型类型
-					Class<?> poClass = resultList.get(0).getClass();
-					Map<Field,CnaFieldEncrypt> fieldMap;
-					//判断泛型类是否已经被缓存
-					if(FIELD_CACHE.containsKey(poClass)){
-						fieldMap = FIELD_CACHE.get(poClass);
-					}else {
-						//没有被缓存则遍历类中所有字段，检查是否有需要自动解密的字段并缓存
-						Field[] poFields = poClass.getDeclaredFields();
-						fieldMap= new HashMap<>();
-						for (Field field:poFields){
-							CnaFieldEncrypt annotation = field.getAnnotation(CnaFieldEncrypt.class);
-							if(annotation!=null){
-								fieldMap.put(field,annotation);
-							}
-						}
-						if(ObjectUtils.isNotEmpty(fieldMap)){
-							FIELD_CACHE.put(poClass,fieldMap);
-						}
-					}
-
 					//将结果集中所有需要自动解密的字段进行遍历解密
-					resultList.forEach(result-> fieldMap.forEach((field,annotation) ->  {
-								try {
-									field.setAccessible(true);
-									Object value = field.get(result);
-									String decrypt = null;
-									if (ObjectUtils.isNotEmpty(value)){
-										String key = null;
-										EncryptAlgorithmProcessor encryptAlgorithmProcessor=null;
-										EncryptAlgorithm algorithm = annotation.encryptAlgorithm();
-										//如果没有定义过算法，则采用默认的AES算法实现
-										if(algorithm.equals(EncryptAlgorithm.NONE)){
-											if(cnaworldMybatisPlusProperties.getFieldEncrypt().getAlgorithm().equals(EncryptAlgorithm.AES)){
-												encryptAlgorithmProcessor= new AESEncryptProcessor();
-											}
-										}
-                                        //判断是使用全局密钥还是字段密钥
-										if(StringUtils.isNotBlank(annotation.key())){
-											key = annotation.key();
-										}else if (StringUtils.isNotBlank(cnaworldMybatisPlusProperties.getFieldEncrypt().getKey())){
-											key = cnaworldMybatisPlusProperties.getFieldEncrypt().getKey();
-										}else {
-											decrypt="解密失败，密钥未配置";
-											CnaLogUtil.error(log,"field:{},解密失败，密钥未配置",field.getDeclaringClass()+"."+field.getName());
-										}
-										//算法和密钥都没问题，则进行解密，并将数据回写到原始结果集中
-										if(StringUtils.isNotBlank(key)){
-											if (encryptAlgorithmProcessor != null) {
-												decrypt = encryptAlgorithmProcessor.decrypt(String.valueOf(value),key);
-											}
-										}
-										if (StringUtils.isBlank(decrypt)){
-											field.set(result, "解密失败");
-										}else {
-											field.set(result, decrypt);
-										}
-									}
-									field.setAccessible(false);
-								} catch (IllegalAccessException e) {
-									throw new RuntimeException(e);
-								}
-							}
-					));
+					resultList.forEach(result-> {
+						if (fieldMap != null) {
+							fieldMap.forEach((field, annotation) -> encrypt(result, field, annotation, "2"));
+						}
+					});
+				}
+			}else {
+				if (fieldMap != null) {
+					fieldMap.forEach((field,annotation) -> encrypt(proceed, field, annotation,"2"));
 				}
 			}
 			return proceed;
-		} else if (SqlCommandType.INSERT == ms.getSqlCommandType()) {
+		} else if (SqlCommandType.UPDATE == ms.getSqlCommandType() || SqlCommandType.INSERT == ms.getSqlCommandType()) {
 			Object parameterObject = args[1];
-			BoundSql boundSql = ms.getBoundSql(parameterObject);
-			String sql = boundSql.getSql();
-		} else if (SqlCommandType.UPDATE == ms.getSqlCommandType()) {
-			Object parameterObject = args[1];
-			BoundSql boundSql = ms.getBoundSql(parameterObject);
-			String sql = boundSql.getSql();
+			if(!CnaObjectUtil.isObject(parameterObject)){
+				return invocation.proceed();
+			}
+			Map<Field, CnaFieldEncrypt> fieldMap = getEntityFieldCache(parameterObject);
+			if(parameterObject instanceof List){
+				List<?> parameterList = (List<?>) parameterObject;
+				if(ObjectUtils.isNotEmpty(parameterList)){
+					parameterList.forEach(parameter-> {
+						if (fieldMap != null) {
+							fieldMap.forEach((field, annotation) -> encrypt(parameter, field, annotation, "1"));
+						}
+					});
+				}
+			}
 		}
+		//判断是select语句
 		// 返回，继续执行
 		return invocation.proceed();
 	}
 
-	public static void main(String[] args) {
-		System.out.println(CnaAesUtil.encrypt("Ssadasa123dsfsda21sdasd", "密码学基础：AES加密算法 - 知乎"));
+	private void encrypt(Object entity, Field field, CnaFieldEncrypt annotation,String encryptType) {
+		try {
+			field.setAccessible(true);
+			Object value = field.get(entity);
+			String content = null;
+			if (ObjectUtils.isNotEmpty(value)){
+				String key = null;
+				EncryptAlgorithmProcessor encryptAlgorithmProcessor=null;
+				EncryptAlgorithm algorithm = annotation.encryptAlgorithm();
+				//如果没有定义过算法，则采用默认的AES算法实现
+				if(algorithm.equals(EncryptAlgorithm.NONE)){
+					if(cnaworldMybatisPlusProperties.getFieldEncrypt().getAlgorithm().equals(EncryptAlgorithm.AES)){
+						encryptAlgorithmProcessor= new AESEncryptProcessor();
+					}
+				}
+				//判断是使用全局密钥还是字段密钥
+				if(StringUtils.isNotBlank(annotation.key())){
+					key = annotation.key();
+				}else if (StringUtils.isNotBlank(cnaworldMybatisPlusProperties.getFieldEncrypt().getKey())){
+					key = cnaworldMybatisPlusProperties.getFieldEncrypt().getKey();
+				}else {
+					content="加密解密失败，密钥未配置";
+					CnaLogUtil.error(log,"field:{},加密解密失败，密钥未配置", field.getDeclaringClass()+"."+ field.getName());
+				}
+				//算法和密钥都没问题，则进行解密，并将数据回写到原始结果集中
+				if(StringUtils.isNotBlank(key)){
+					if (encryptAlgorithmProcessor != null) {
+						if ("1".equals(encryptType)){
+							//加密
+							content = encryptAlgorithmProcessor.encrypt(String.valueOf(value),key);
+						}else {
+							//解密
+							content = encryptAlgorithmProcessor.decrypt(String.valueOf(value),key);
+						}
+					}
+				}
+				if (!StringUtils.isBlank(content)){
+					field.set(entity, content);
+				}
+			}
+			field.setAccessible(false);
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private Map<Field,CnaFieldEncrypt> getEntityFieldCache(Object obj){
+		if(ObjectUtils.isEmpty(obj)){
+			return null;
+		}
+		Class<?> objClass = null;
+		//属性及属性注解缓存
+		Map<Field,CnaFieldEncrypt> fieldMap;
+		if(obj instanceof List){
+			//讲对象转换成list
+			List<?> objList = (List<?>) obj;
+			if(ObjectUtils.isNotEmpty(objList)){
+				//得到list的泛型类型
+				objClass = objList.get(0).getClass();
+			}
+		}else{
+			objClass = obj.getClass();
+		}
+		//判断泛型类是否已经被缓存
+		if(!ENTITY_FIELD_CACHE.containsKey(objClass)){
+			//没有被缓存则遍历类中所有字段，检查是否有需要自动解密的字段并缓存
+			Field[] objFields = new Field[0];
+			if (objClass != null) {
+				objFields = objClass.getDeclaredFields();
+			}
+			fieldMap= new HashMap<>();
+			for (Field field:objFields){
+				CnaFieldEncrypt annotation = field.getAnnotation(CnaFieldEncrypt.class);
+				if(annotation!=null){
+					fieldMap.put(field,annotation);
+				}
+			}
+			if(ObjectUtils.isNotEmpty(fieldMap)){
+				ENTITY_FIELD_CACHE.put(objClass,fieldMap);
+			}
+		}else{
+			fieldMap=ENTITY_FIELD_CACHE.get(objClass);
+		}
+		return fieldMap;
 	}
 
 }
