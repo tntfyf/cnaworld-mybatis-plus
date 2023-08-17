@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CnaFieldEncrypt {
 
-    String key() default "";
+    String[] keys() default {};
 
     EncryptAlgorithm encryptAlgorithm() default EncryptAlgorithm.NONE;
 

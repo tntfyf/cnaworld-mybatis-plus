@@ -52,8 +52,9 @@ public class MybatisPlusConfig {
     }
 
     @Bean
-    public CnaworldAutoEncryptInterceptor cnaWorldAutoEncryptInterceptor() {
-        CnaLogUtil.info(log,"cnaworld mybatis-plus update-optimistic-locker-field initialized");
+    @ConditionalOnExpression("#{environment['cnaworld.mybatis-plus.auto-field-encrypt'] == null || !environment['cnaworld.mybatis-plus.auto-field-encrypt'].contains('false')}")
+    public CnaworldAutoEncryptInterceptor cnaworldAutoEncryptInterceptor() {
+        CnaLogUtil.info(log,"cnaworld mybatis-plus auto-field-encrypt initialized");
         return new CnaworldAutoEncryptInterceptor();
     }
 }

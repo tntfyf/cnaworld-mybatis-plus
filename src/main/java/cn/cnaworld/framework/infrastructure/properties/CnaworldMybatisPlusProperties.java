@@ -1,5 +1,6 @@
 package cn.cnaworld.framework.infrastructure.properties;
 
+import cn.cnaworld.framework.infrastructure.component.mybatisplus.processor.EncryptAlgorithmProcessor;
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.statics.enums.EncryptAlgorithm;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,6 +45,11 @@ public class CnaworldMybatisPlusProperties {
      * 逻辑删除扩展方法注入，directDelete 系列和 recover 系列
      */
     private boolean functionExtension = true;
+
+    /**
+     * 对注解字段自动加密解密
+     */
+    private boolean autoFieldEncrypt = true;
 
     /**
      * 自动填充 insert时，自动获取遍历属性进行填充 ，填充值采用类型的初始化默认值
@@ -103,7 +109,7 @@ public class CnaworldMybatisPlusProperties {
         /**
          * 加密密钥
          */
-        private String key;
+        private String[] keys;
 
         /**
          * 加密算法
@@ -113,7 +119,7 @@ public class CnaworldMybatisPlusProperties {
         /**
          * 自定义处理器
          */
-        private String encryptor;
+        private Class<? extends EncryptAlgorithmProcessor> encryptAlgorithmProcessor;
 
     }
 

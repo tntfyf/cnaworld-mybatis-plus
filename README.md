@@ -8,7 +8,9 @@
 
 3. 默认开启乐观锁实现 OptimisticLockerInnerInterceptor
 
-5. 扩展逻辑删除相关方法，提供逻辑恢复和直接删除扩展方法
+4. 扩展逻辑删除相关方法，提供逻辑恢复和直接删除扩展方法
+
+5. 默认开启CRUD字段自动加密解密
 
 6. 客户端配置
 
@@ -26,6 +28,7 @@
    cnaworld:
      mybatis-plus:
        enabled: true #总开关,关闭后同时关闭所有增强功能，默认true开启，
+       auto-field-encrypt: true #使用对象进行CRUD时，若字段上存在@CnaFieldEncrypt注解则会自动加密解密
        auto-insert-fill: true #数据初始化时默认填充，insert时，自动获取fill-strategy-field 中的属性进行填充。
        function-extension: true #扩展逻辑删除相关方法，提供逻辑恢复和直接删除扩展方法。默认true开启。
        snow-flake: true #提供16位雪花ID实现。默认true开启。
@@ -37,8 +40,12 @@
            field-processor-class: cn.cnaworld.cnaworldaoptest.api.AutoInsertFillProcessor #填充值处理器，实现FieldProcessor的getFieldValue方法，返回值作为属性填充值。
          - field-name: "deletedDb"
            field-value: false #填充值
+       field-encrypt: #使用对象进行CRUD时，若字段上存在@CnaFieldEncrypt注解则会自动加密解密
+         algorithm: aes #String 类型字段加密算法
+         keys: Ssadasa123dsfsda21sdasd #加密密钥
+         encrypt-algorithm-processor: cn.cnaworld.framework.infrastructure.component.mybatisplus.processor.stringprocessor.impl.AESEncryptProcessor #自定义实现处理器    
    ```
-   
+
 8. 具体使用
 
    1. 16位雪花ID使用方式
@@ -64,20 +71,81 @@
       2. 需要entity字段添加@Version注解
 
       3. mybatis-plus对自定义方法、逻辑删除方法更新时无法对数据乐观锁字段进行更新问题，建议使用updateTimeDb作为乐观锁字段，并在数据库层面设置根据当前时间戳更新。mysql 5.6以上支持，PG可使用触发器支持。
-   
+
       4. ```java
          @Version
          private LocalDateTime updateTimeDb;
          ```
+
+   4. 使用对象进行**CRUD**时，若字段上存在**@CnaFieldEncrypt**注解则会自动加密解密
+
+      1、支持的类型有：String、byte、short、int、long、float、double、BigDecimal、boolean、Date、LocalDate、LocalDateTime。
+
+      2、配置文件配置为全局配置，注解中的配置为独立配置。
+
+      3、可使用 auto-field-encrypt 配置控制功能是否开启，默认开启。
+
+      4、注意：由于算法问题*BigDecimal* 最少设置11位精度
+
+      ```java
+      @CnaFieldEncrypt(keys = {"123"},encryptAlgorithm = EncryptAlgorithm.AES,encryptAlgorithmProcessor = AESEncryptProcessor.class)
+          @TableField("encrypt")
+          private String encrypt;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_short")
+          private short encryptShort;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_byte")
+          private byte encryptByte;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_int")
+          private int encryptInt;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_long")
+          private long encryptLong;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_double")
+          private double encryptDouble;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_float")
+          private float encryptFloat;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_big_decimal")
+          private BigDecimal encryptBigDecimal;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_boolean")
+          private boolean encryptBoolean;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_time")
+          private Date encryptTime;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_local_time")
+          private LocalDateTime encryptLocalTime;
+      
+          @TableField("encrypt_local_date")
+          private LocalDate encryptLocalDate;
+      ```
+
+      
 
    5. 扩展逻辑删除相关方法，提供逻辑恢复和直接删除扩展方法
 
       1. 若entity字段增加逻辑删除注解支持，则所有的mybatis-plus提供的Service删除方法及ServiceImpl 的 remove()、delete() , 方法都会开启逻辑删除
 
       2. 需要由继承mybatis-plus 的IService<T>、ServiceImpl<TMapper, T>、BaseMapper<T>，改为继承CnaWorldBaseService<T>、CnaWorldBaseServiceImpl<TMapper, T> 、CnaWorldBaseMapper<T>
-   
+
       3. 同时提供了CnaWorldBaseEntity 可供使用
-   
+
          1. 建议使用updateTimeDb同时作为乐观锁字段
          2. 建议使用deletedDb同时作为逻辑删除字段
 
@@ -101,9 +169,9 @@
          //直接删除
          default boolean directRemoveByIds(Collection<? extends Serializable> idList) 
          ```
-   
+
       5. CnaWorldBaseMapper 扩展方法提供逻辑恢复 和 直接删除
-   
+
          ```java
          //逻辑恢复
          int recover(@Param(Constants.WRAPPER) Wrapper<T> queryWrapper);
@@ -122,9 +190,9 @@
          //直接删除
          int directDeleteBatchIds(@Param(Constants.COLLECTION) Collection<? extends Serializable> idList);
          ```
-   
+
       6. 自动生成代码类,可直接配置 superClass 继承扩展实现
-   
+
          ```java
          package cn.cnaworld.cnaworldaoptest;
          
@@ -245,7 +313,7 @@
          	}
          }
          ```
-   
+
 9. 客户端中也加入此基础Entity类 ， 放到客户端方便切换openapi 2.0、3.0 ，mybatisplus.generator 提供的模板默认是2.0的故，此类也默认采用2.0的实现。可采用自定义模板的方式调整为3.0实现。
 
 ```java
@@ -317,7 +385,7 @@ public class CnaWorldBaseEntity implements Serializable {
 
 ```
 
-10. 启动注册
+10. # 启动注册
 
 启动时，会打印开启的组件的注册日志。
 
@@ -327,6 +395,8 @@ public class CnaWorldBaseEntity implements Serializable {
    2023-03-07 23:24:31.286  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus auto-insert-fill initialized ！
    2023-03-07 23:24:31.300  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus extend method initialized ！
    2023-03-07 23:24:31.304  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus 16-snowflake initialized ！
+   2023-08-17 17 14:35:59.824  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus auto-field-encrypt initialized ！ 
    ```
 11. 客户端应用demo
-    [应用demo](http://t.csdn.cn/nX3e4)
+    [应用demo](http://t.csdn.cn/rCOsC)
+
