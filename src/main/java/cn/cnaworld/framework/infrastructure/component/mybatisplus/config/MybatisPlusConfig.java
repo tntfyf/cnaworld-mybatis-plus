@@ -2,7 +2,7 @@ package cn.cnaworld.framework.infrastructure.component.mybatisplus.config;
 
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.handler.CustomizedMetaObjectHandler;
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.injector.CustomizedSqlInjector;
-import cn.cnaworld.framework.infrastructure.component.mybatisplus.interceptor.CnaWorldInnerInterceptor;
+import cn.cnaworld.framework.infrastructure.component.mybatisplus.interceptor.CnaworldAutoEncryptInterceptor;
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.snowflake.CustomerIdGenerator;
 import cn.cnaworld.framework.infrastructure.utils.log.CnaLogUtil;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
@@ -52,10 +52,9 @@ public class MybatisPlusConfig {
     }
 
     @Bean
-    @ConditionalOnExpression("#{environment['cnaworld.mybatis-plus.update-optimistic-locker-field'] ==null || !environment['cnaworld.mybatis-plus.update-optimistic-locker-field'].contains('false')}")
-    public CnaWorldInnerInterceptor cnaWorldInnerInterceptor() {
-        CnaLogUtil.info(log,"cnaworld mybatis-plus update-optimistic-locker-field initialized");
-        return new CnaWorldInnerInterceptor();
+    @ConditionalOnExpression("#{environment['cnaworld.mybatis-plus.auto-field-encrypt'] == null || !environment['cnaworld.mybatis-plus.auto-field-encrypt'].contains('false')}")
+    public CnaworldAutoEncryptInterceptor cnaworldAutoEncryptInterceptor() {
+        CnaLogUtil.info(log,"cnaworld mybatis-plus auto-field-encrypt initialized");
+        return new CnaworldAutoEncryptInterceptor();
     }
-
 }

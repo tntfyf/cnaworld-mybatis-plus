@@ -1,5 +1,5 @@
 # Spring boot 快速实现 mybatis-plus 的功能增强 ，如16位雪花ID ，逻辑删除恢复 ，乐观锁等
-## 1.0.9版本
+## 1.1.3版本
 
 作用：
 1. 提供16位雪花ID实现，解决默认19位实现导致的前端精度问题
@@ -8,9 +8,9 @@
 
 3. 默认开启乐观锁实现 OptimisticLockerInnerInterceptor
 
-4. 数据更新时对乐观锁字段累增后填充。解决mybatis-plus对自定义方法、逻辑删除方法更新时无法对数据乐观锁字段进行更新问题
+4. 扩展逻辑删除相关方法，提供逻辑恢复和直接删除扩展方法
 
-5. 扩展逻辑删除相关方法，提供逻辑恢复和直接删除扩展方法
+5. 默认开启CRUD字段自动加密解密
 
 6. 客户端配置
 
@@ -28,11 +28,11 @@
    cnaworld:
      mybatis-plus:
        enabled: true #总开关,关闭后同时关闭所有增强功能，默认true开启，
+       auto-field-encrypt: true #使用对象进行CRUD时，若字段上存在@CnaFieldEncrypt注解则会自动加密解密
        auto-insert-fill: true #数据初始化时默认填充，insert时，自动获取fill-strategy-field 中的属性进行填充。
        function-extension: true #扩展逻辑删除相关方法，提供逻辑恢复和直接删除扩展方法。默认true开启。
        snow-flake: true #提供16位雪花ID实现。默认true开启。
        optimistic-locker: true #提供乐观锁实现 OptimisticLockerInnerInterceptor。默认true开启。
-       update-optimistic-locker-field: true #数据更新时对乐观锁字段累增后填充。默认true开启。
        fill-strategy-field: #数据初始化时默认填充属性集合
          - field-name: "createTimeDb" #需填充的entity字段名称，需要注解 @TableField(value = "create_time_db",fill = FieldFill.INSERT) 中开启fill = FieldFill.INSERT
            field-class: java.time.LocalDateTime #默认填充字段类型，Date 、Timestamp 、 LocalDateTime 默认取当前时间，Long 、Integer 默认取0。
@@ -40,6 +40,10 @@
            field-processor-class: cn.cnaworld.cnaworldaoptest.api.AutoInsertFillProcessor #填充值处理器，实现FieldProcessor的getFieldValue方法，返回值作为属性填充值。
          - field-name: "deletedDb"
            field-value: false #填充值
+       field-encrypt: #使用对象进行CRUD时，若字段上存在@CnaFieldEncrypt注解则会自动加密解密
+         algorithm: aes #String 类型字段加密算法
+         keys: Ssadasa123dsfsda21sdasd #加密密钥
+         encrypt-algorithm-processor: cn.cnaworld.framework.infrastructure.component.mybatisplus.processor.stringprocessor.impl.AESEncryptProcessor #自定义实现处理器    
    ```
 
 8. 具体使用
@@ -66,23 +70,73 @@
 
       2. 需要entity字段添加@Version注解
 
-      3. ```java
+      3. mybatis-plus对自定义方法、逻辑删除方法更新时无法对数据乐观锁字段进行更新问题，建议使用updateTimeDb作为乐观锁字段，并在数据库层面设置根据当前时间戳更新。mysql 5.6以上支持，PG可使用触发器支持。
+
+      4. ```java
          @Version
          private LocalDateTime updateTimeDb;
          ```
 
-   4. 数据更新时对乐观锁字段累增后填充
+   4. 使用对象进行**CRUD**时，若字段上存在**@CnaFieldEncrypt**注解则会自动加密解密
 
-      1. 官网乐观锁插件 OptimisticLockerInnerInterceptor 问题：对于逻辑删除、自定义方法、入参不存在乐观锁字段的方法 ，插件都无法对数据库的乐观锁字段的值进行累加或者更新
+      1、支持的类型有：String、byte、short、int、long、float、double、BigDecimal、boolean、Date、LocalDate、LocalDateTime。
 
-      2. 需要entity字段添加@Version注解
+      2、配置文件配置为全局配置，注解中的配置为独立配置。
 
-      3. ```java
-         @Version
-         private LocalDateTime updateTimeDb;
-         ```
+      3、可使用 auto-field-encrypt 配置控制功能是否开启，默认开启。
 
-      4. 对所有添加乐观锁注解的字段，在执行Update语句时进行更新，包括逻辑删除、逻辑恢复、自定义方法
+      4、注意：由于算法问题*BigDecimal* 最少设置11位精度
+
+      ```java
+      @CnaFieldEncrypt(keys = {"123"},encryptAlgorithm = EncryptAlgorithm.AES,encryptAlgorithmProcessor = AESEncryptProcessor.class)
+          @TableField("encrypt")
+          private String encrypt;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_short")
+          private short encryptShort;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_byte")
+          private byte encryptByte;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_int")
+          private int encryptInt;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_long")
+          private long encryptLong;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_double")
+          private double encryptDouble;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_float")
+          private float encryptFloat;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_big_decimal")
+          private BigDecimal encryptBigDecimal;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_boolean")
+          private boolean encryptBoolean;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_time")
+          private Date encryptTime;
+      
+          @CnaFieldEncrypt
+          @TableField("encrypt_local_time")
+          private LocalDateTime encryptLocalTime;
+      
+          @TableField("encrypt_local_date")
+          private LocalDate encryptLocalDate;
+      ```
+
+      
 
    5. 扩展逻辑删除相关方法，提供逻辑恢复和直接删除扩展方法
 
@@ -143,7 +197,7 @@
          package cn.cnaworld.cnaworldaoptest;
          
          import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.entity.CnaWorldBaseEntity;
-         import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.mapper.CnaWorldBaseMapper;
+         import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.mapper.CnaworldBaseMapper;
          import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.service.CnaWorldBaseService;
          import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.service.impl.CnaWorldBaseServiceImpl;
          import com.baomidou.mybatisplus.annotation.IdType;
@@ -239,7 +293,7 @@
          					//.formatServiceImplFileName(null)//格式化service实现类文件名称	
          				//mapperBuilder
          				.mapperBuilder()//mapperBuilder
-         					.superClass(CnaWorldBaseMapper.class)//设置父类
+         					.superClass(CnaworldBaseMapper.class)//设置父类
          					//.cache(null)//设置缓存实现类
          					//.formatMapperFileName("")//格式化mapper文件名称
          					//.formatXmlFileName("")//格式化xml实现类文件名称
@@ -259,6 +313,7 @@
          	}
          }
          ```
+
 9. 客户端中也加入此基础Entity类 ， 放到客户端方便切换openapi 2.0、3.0 ，mybatisplus.generator 提供的模板默认是2.0的故，此类也默认采用2.0的实现。可采用自定义模板的方式调整为3.0实现。
 
 ```java
@@ -330,7 +385,7 @@ public class CnaWorldBaseEntity implements Serializable {
 
 ```
 
-10. 启动注册
+10. # 启动注册
 
 启动时，会打印开启的组件的注册日志。
 
@@ -340,6 +395,8 @@ public class CnaWorldBaseEntity implements Serializable {
    2023-03-07 23:24:31.286  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus auto-insert-fill initialized ！
    2023-03-07 23:24:31.300  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus extend method initialized ！
    2023-03-07 23:24:31.304  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus 16-snowflake initialized ！
+   2023-08-17 17 14:35:59.824  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus auto-field-encrypt initialized ！ 
    ```
 11. 客户端应用demo
-    [应用demo](http://t.csdn.cn/nX3e4)
+    [应用demo](http://t.csdn.cn/rCOsC)
+

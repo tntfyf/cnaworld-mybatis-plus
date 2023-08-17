@@ -1,5 +1,7 @@
 package cn.cnaworld.framework.infrastructure.properties;
 
+import cn.cnaworld.framework.infrastructure.component.mybatisplus.processor.EncryptAlgorithmProcessor;
+import cn.cnaworld.framework.infrastructure.component.mybatisplus.statics.enums.EncryptAlgorithm;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -40,19 +42,25 @@ public class CnaworldMybatisPlusProperties {
     private boolean optimisticLocker = true;
 
     /**
-     * 根据@Version注解，update时自动更新乐观锁字段
-     */
-    private boolean updateOptimisticLockerField = true;
-
-    /**
      * 逻辑删除扩展方法注入，directDelete 系列和 recover 系列
      */
     private boolean functionExtension = true;
 
     /**
+     * 对注解字段自动加密解密
+     */
+    private boolean autoFieldEncrypt = true;
+
+    /**
      * 自动填充 insert时，自动获取遍历属性进行填充 ，填充值采用类型的初始化默认值
      */
     private List<FillStrategyField> fillStrategyField;
+
+    /**
+     * 自动加密解密
+     */
+    private FieldEncrypt fieldEncrypt;
+
 
     /**
      * 属性实体
@@ -84,6 +92,34 @@ public class CnaworldMybatisPlusProperties {
          * 填充值实现
          */
         private Class<?> fieldProcessorClass;
+
+    }
+
+    /**
+     * 自动加密
+     * @author Lucifer
+     * @date 2023/1/30
+     * @since 1.0
+     */
+    @Getter
+    @Setter
+    @ToString
+    public static class FieldEncrypt {
+
+        /**
+         * 加密密钥
+         */
+        private String[] keys;
+
+        /**
+         * 加密算法
+         */
+        private EncryptAlgorithm algorithm;
+
+        /**
+         * 自定义处理器
+         */
+        private Class<? extends EncryptAlgorithmProcessor> encryptAlgorithmProcessor;
 
     }
 

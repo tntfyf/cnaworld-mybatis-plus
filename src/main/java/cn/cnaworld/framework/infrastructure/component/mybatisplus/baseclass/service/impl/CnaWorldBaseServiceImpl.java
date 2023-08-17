@@ -1,7 +1,7 @@
 package cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.service.impl;
 
-import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.mapper.CnaWorldBaseMapper;
-import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.service.CnaWorldBaseService;
+import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.mapper.CnaworldBaseMapper;
+import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.service.CnaworldBaseService;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.enums.SqlMethod;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
@@ -31,7 +31,7 @@ import java.util.function.Function;
  * @date 2023/3/5
  * @since 1.0.0
  */
-public class CnaWorldBaseServiceImpl<M extends CnaWorldBaseMapper<T>, T> implements CnaWorldBaseService<T> {
+public class CnaWorldBaseServiceImpl<M extends CnaworldBaseMapper<T>, T> implements CnaworldBaseService<T> {
 
 	protected Log log = LogFactory.getLog(getClass());
 

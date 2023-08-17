@@ -1,6 +1,6 @@
 package cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.service;
 
-import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.mapper.CnaWorldBaseMapper;
+import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.mapper.CnaworldBaseMapper;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -17,7 +17,7 @@ import java.util.Map;
  * @date 2023/3/5
  * @since 1.0.0
  */
-public interface CnaWorldBaseService<T> extends IService<T> {
+public interface CnaworldBaseService<T> extends IService<T> {
 
 	/**
 	 * 根据 entity 条件，恢复记录
@@ -28,7 +28,7 @@ public interface CnaWorldBaseService<T> extends IService<T> {
 	 * @return boolean
 	 */
 	default boolean restore(Wrapper<T> queryWrapper) {
-		return SqlHelper.retBool(((CnaWorldBaseMapper<T>)getBaseMapper()).recover(queryWrapper));
+		return SqlHelper.retBool(((CnaworldBaseMapper<T>)getBaseMapper()).recover(queryWrapper));
 	}
 
 	/**
@@ -40,7 +40,7 @@ public interface CnaWorldBaseService<T> extends IService<T> {
 	 * @return boolean
 	 */
 	default boolean restoreById(Serializable id) {
-		return SqlHelper.retBool(((CnaWorldBaseMapper<T>) getBaseMapper()).recoverById(id));
+		return SqlHelper.retBool(((CnaworldBaseMapper<T>) getBaseMapper()).recoverById(id));
 	}
 
 	/**
@@ -53,7 +53,7 @@ public interface CnaWorldBaseService<T> extends IService<T> {
 	 */
 	default boolean restoreByMap(Map<String, Object> columnMap) {
 		 Assert.notEmpty(columnMap, "error: columnMap must not be empty");
-	     return SqlHelper.retBool(((CnaWorldBaseMapper<T>) getBaseMapper()).recoverByMap(columnMap));
+	     return SqlHelper.retBool(((CnaworldBaseMapper<T>) getBaseMapper()).recoverByMap(columnMap));
 	}
 	
 	/**
@@ -68,7 +68,7 @@ public interface CnaWorldBaseService<T> extends IService<T> {
 		if (CollectionUtils.isEmpty(idList)) {
             return false;
         }
-        return SqlHelper.retBool(((CnaWorldBaseMapper<T>)getBaseMapper()).recoverBatchIds(idList));
+        return SqlHelper.retBool(((CnaworldBaseMapper<T>)getBaseMapper()).recoverBatchIds(idList));
 	}
 
 	/**
@@ -80,7 +80,7 @@ public interface CnaWorldBaseService<T> extends IService<T> {
 	 * @return boolean
 	 */
 	default boolean directRemove(Wrapper<T> queryWrapper) {
-		return SqlHelper.retBool(((CnaWorldBaseMapper<T>)getBaseMapper()).directDelete(queryWrapper));
+		return SqlHelper.retBool(((CnaworldBaseMapper<T>)getBaseMapper()).directDelete(queryWrapper));
 	}
 
 	/**
@@ -92,7 +92,7 @@ public interface CnaWorldBaseService<T> extends IService<T> {
 	 * @return boolean
 	 */
 	default boolean directRemoveById(Serializable id) {
-		return SqlHelper.retBool(((CnaWorldBaseMapper<T>) getBaseMapper()).directDeleteById(id));
+		return SqlHelper.retBool(((CnaworldBaseMapper<T>) getBaseMapper()).directDeleteById(id));
 	}
 
 	/**
@@ -105,7 +105,7 @@ public interface CnaWorldBaseService<T> extends IService<T> {
 	 */
 	default boolean directRemoveByMap(Map<String, Object> columnMap) {
 		Assert.notEmpty(columnMap, "error: columnMap must not be empty");
-		return SqlHelper.retBool(((CnaWorldBaseMapper<T>) getBaseMapper()).directDeleteByMap(columnMap));
+		return SqlHelper.retBool(((CnaworldBaseMapper<T>) getBaseMapper()).directDeleteByMap(columnMap));
 	}
 
 	/**
@@ -120,7 +120,7 @@ public interface CnaWorldBaseService<T> extends IService<T> {
 		if (CollectionUtils.isEmpty(idList)) {
 			return false;
 		}
-		return SqlHelper.retBool(((CnaWorldBaseMapper<T>)getBaseMapper()).directDeleteBatchIds(idList));
+		return SqlHelper.retBool(((CnaworldBaseMapper<T>)getBaseMapper()).directDeleteBatchIds(idList));
 	}
 
 }
