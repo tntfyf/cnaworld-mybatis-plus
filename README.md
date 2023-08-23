@@ -1,6 +1,4 @@
 # Spring boot 快速实现 mybatis-plus 的功能增强 ，如16位雪花ID ，逻辑删除恢复 ，乐观锁等
-## 1.1.3版本
-
 作用：
 1. 提供16位雪花ID实现，解决默认19位实现导致的前端精度问题
 
@@ -194,11 +192,11 @@
       6. 自动生成代码类,可直接配置 superClass 继承扩展实现
 
          ```java
-         package cn.cnaworld.cnaworldaoptest;
+         package cn.cnaworld.base;
          
-         import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.entity.CnaWorldBaseEntity;
+         import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.entity.CnaworldBaseEntity;
          import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.mapper.CnaworldBaseMapper;
-         import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.service.CnaWorldBaseService;
+         import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.service.CnaworldBaseService;
          import cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.service.impl.CnaWorldBaseServiceImpl;
          import com.baomidou.mybatisplus.annotation.IdType;
          import com.baomidou.mybatisplus.generator.AutoGenerator;
@@ -210,8 +208,7 @@
          import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
          import com.baomidou.mybatisplus.generator.keywords.MySqlKeyWordsHandler;
          
-         
-         public class CnaWorldBaseCodeGenerator {
+         public class CnaworldBaseCodeGenerator {
          	
          	public static void main(String[] args) {
          		DataSourceConfig mysqlDataSourceConfig = new DataSourceConfig.Builder(
@@ -223,7 +220,7 @@
          		GlobalConfig globalConfig = GeneratorBuilder.globalConfigBuilder()
          				.fileOverride()//是否覆盖已生成文件 默认值:false
          				.openDir(false)//是否打开生成目录 默认值:true 
-         				.outputDir("D:\\CodeRepository\\github\\tntfyf\\cnaworld-aop-test\\src\\main\\java\\")//指定输出目录 默认值: windows:D:// linux or mac : /tmp
+         				.outputDir("./src/main/java/")//指定输出目录 默认值: windows:D:// linux or mac : /tmp
          				.author("Lucifer")//作者名 默认值:无
          				//.enableKotlin()//是否生成kotlin 默认值:false
          				.enableSwagger()//是否生成swagger注解 默认值:false
@@ -231,14 +228,14 @@
          				.commentDate("yyyy-MM-dd")//注释日期 默认值: yyyy-MM-dd
          				.build();
          		PackageConfig packageConfig = new PackageConfig.Builder()
-         				.parent("cn.cnaworld.cnaworldaoptest.domain") //父包名 默认值:com.baomidou
-         				.moduleName("student") //父包模块名 默认值:无
-         				.entity("entity") //Entity包名 默认值:entity
+         				.parent("cn.cnaworld.base.infrastructure.repository.book") //父包名 默认值:com.baomidou
+         				.moduleName("orm") //父包模块名 默认值:无
+         				.entity("po") //Entity包名 默认值:entity
          				.service("service") //Service包名 默认值:service
          				.serviceImpl("service.impl") //Service Impl包名 默认值:service.impl
          				.mapper("mapper") //Mapper包名 默认值:mapper
          				.xml("mapper.xml") //Mapper XML包名 默认值:mapper.xml
-         				.controller("controller") //Controller包名 默认值:controller
+         				//.controller("controller") //Controller包名 默认值:controller
          				.build();
          		TemplateConfig templateConfig = new TemplateConfig.Builder().build(); // 激活所有默认模板
          		//LikeTable likeTable=new LikeTable("operate_log");
@@ -249,14 +246,14 @@
          				//.likeTable(likeTable)//模糊表匹配(sql过滤)
          				//.notLikeTable(null)//模糊表匹配(sql过滤)
          				//.addFieldPrefix("")//增加表字段前缀
-         				.addInclude("student")//增加表匹配(内存过滤)
+         				.addInclude("book")//增加表匹配(内存过滤)
+         				//.addInclude("goods")//增加表匹配(内存过滤)
          				//.addInclude("email_account_manage")//增加表匹配(内存过滤)
          				//.addExclude("")//增加表排除匹配(内存过滤)
          				//.addTablePrefix("")//增加表前缀
          				//实体策略配置
          				.entityBuilder()//实体策略配置
-         					//.nameConvert(null)//名称转换实现
-         					.superClass(CnaWorldBaseEntity.class)//父类W
+         					.superClass(CnaworldBaseEntity.class)//父类W
          					//.enableColumnConstant()//开启生成字段常量W
          					//.enableChainModel()//开启链式模型
          					//.addSuperEntityColumns("")//添加父类公共字段
@@ -285,7 +282,7 @@
          					.enableRestStyle()//开启生成@RestController控制器
          				//service策略配置
          				.serviceBuilder()//service策略配置
-         					.superServiceClass(CnaWorldBaseService.class)//设置service接口父类
+         					.superServiceClass(CnaworldBaseService.class)//设置service接口父类
          					.superServiceImplClass(CnaWorldBaseServiceImpl.class)//设置service实现类父类
          					//.convertServiceFileName(null)//转换service接口文件名称
          					//.convertServiceImplFileName(null)//转换service实现类文件名称
@@ -303,6 +300,8 @@
          					.enableBaseColumnList()//启用BaseColumnList
          				.build();
          
+         		strategyConfig.entityBuilder().nameConvert(new INameConvertCust(strategyConfig));
+         
          		InjectionConfig injectionConfig = new InjectionConfig.Builder().build();
          		// 代码生成器
          		new AutoGenerator(mysqlDataSourceConfig).global(globalConfig).packageInfo(packageConfig)
@@ -317,14 +316,13 @@
 9. 客户端中也加入此基础Entity类 ， 放到客户端方便切换openapi 2.0、3.0 ，mybatisplus.generator 提供的模板默认是2.0的故，此类也默认采用2.0的实现。可采用自定义模板的方式调整为3.0实现。
 
 ```java
-package cn.cnaworld.base.infrastructure.component.baseclass;
+package cn.cnaworld.framework.infrastructure.component.mybatisplus.baseclass.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.Version;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -341,13 +339,13 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-@ApiModel(value = "CnaWorldBaseEntity对象")
-public class CnaWorldBaseEntity implements Serializable {
+@Schema(name = "CnaWorldBaseEntity对象")
+public class CnaworldBaseEntity implements Serializable {
 
     /**
      * 逻辑删除
      */
-    @ApiModelProperty(value = "逻辑删除")
+    @Schema(description = "逻辑删除")
     @TableField(value = "deleted_db",fill = FieldFill.INSERT)
     @TableLogic
     private Boolean deletedDb;
@@ -355,28 +353,28 @@ public class CnaWorldBaseEntity implements Serializable {
     /**
      * 创建者
      */
-    @ApiModelProperty(value = "创建者")
+    @Schema(description = "创建者")
     @TableField("create_by_db")
     private String createByDb;
 
     /**
      * 更新者
      */
-    @ApiModelProperty(value = "更新者")
+    @Schema(description = "更新者")
     @TableField("update_by_db")
     private String updateByDb;
 
     /**
      * 创建日期
      */
-    @ApiModelProperty(value = "创建日期")
+    @Schema(description = "创建日期")
     @TableField(value = "create_time_db",fill = FieldFill.INSERT)
     private LocalDateTime createTimeDb;
 
     /**
      * 更新日期
      */
-    @ApiModelProperty(value = "更新日期")
+    @Schema(description = "更新日期")
     @TableField(value = "update_time_db",fill = FieldFill.INSERT)
     @Version
     private LocalDateTime updateTimeDb;
@@ -395,7 +393,7 @@ public class CnaWorldBaseEntity implements Serializable {
    2023-03-07 23:24:31.286  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus auto-insert-fill initialized ！
    2023-03-07 23:24:31.300  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus extend method initialized ！
    2023-03-07 23:24:31.304  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus 16-snowflake initialized ！
-   2023-08-17 17 14:35:59.824  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus auto-field-encrypt initialized ！ 
+   2023-08-17 14:35:59.824  INFO 49200 --- [           main] c.c.f.i.c.m.config.MybatisPlusConfig     : cnaworld mybatis-plus auto-field-encrypt initialized ！ 
    ```
 11. 客户端应用demo
     [应用demo](http://t.csdn.cn/rCOsC)
