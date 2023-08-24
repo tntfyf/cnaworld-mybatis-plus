@@ -79,7 +79,7 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 
 	private void handleWrite(Object[] args) {
 		Object parameterObject = args[1];
-		if(!CnaObjectUtil.isObject(parameterObject)){
+		if(CnaObjectUtil.notObject(parameterObject)){
 			return;
 		}
 		Map<Field, CnaFieldEncrypt> fieldMap = getEntityFieldCache(parameterObject);
@@ -120,7 +120,7 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 	private Object handleRead(Invocation invocation) throws InvocationTargetException, IllegalAccessException {
 		//执行并获取返回结果
 		Object proceed = invocation.proceed();
-		if(!CnaObjectUtil.isObject(proceed)){
+		if(CnaObjectUtil.notObject(proceed)){
 			return proceed;
 		}
 		Map<Field, CnaFieldEncrypt> fieldMap = getEntityFieldCache(proceed);
@@ -320,7 +320,7 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 			fieldMap= new HashMap<>();
 			for (Field field:objFields){
 				CnaFieldEncrypt annotation = field.getAnnotation(CnaFieldEncrypt.class);
-				if(annotation!=null){
+				if(annotation!=null  && CnaObjectUtil.notObjectClass(field.getType())) {
 					fieldMap.put(field,annotation);
 				}
 			}
