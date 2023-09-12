@@ -168,7 +168,7 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 	private String[] getKeys(Field field, CnaFieldEncrypt annotation) {
 		if(ObjectUtils.isNotEmpty(annotation.keys())){
 			return annotation.keys();
-		}else if (ObjectUtils.isNotEmpty(cnaworldMybatisPlusProperties.getFieldEncrypt().getKeys())){
+		}else if (ObjectUtils.isNotEmpty(cnaworldMybatisPlusProperties.getFieldEncrypt()) && ObjectUtils.isNotEmpty(cnaworldMybatisPlusProperties.getFieldEncrypt().getKeys())){
 			return cnaworldMybatisPlusProperties.getFieldEncrypt().getKeys();
 		}else {
 			CnaLogUtil.error(log,"field:{},加密解密失败，密钥未配置", field.getDeclaringClass()+"."+ field.getName());
