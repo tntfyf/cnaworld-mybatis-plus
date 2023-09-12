@@ -188,7 +188,7 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 				ENCRYPT_PROCESSOR_CACHE.put(aClass.getName(),encryptAlgorithmProcessor);
 			}
 		}else {
-			if(ObjectUtils.isNotEmpty(cnaworldMybatisPlusProperties.getFieldEncrypt().getEncryptAlgorithmProcessor())){
+			if(ObjectUtils.isNotEmpty(cnaworldMybatisPlusProperties.getFieldEncrypt()) && ObjectUtils.isNotEmpty(cnaworldMybatisPlusProperties.getFieldEncrypt().getEncryptAlgorithmProcessor())){
 				if(ENCRYPT_PROCESSOR_CACHE.containsKey(cnaworldMybatisPlusProperties.getFieldEncrypt().getEncryptAlgorithmProcessor().getName())){
 					encryptAlgorithmProcessor = ENCRYPT_PROCESSOR_CACHE.get(cnaworldMybatisPlusProperties.getFieldEncrypt().getEncryptAlgorithmProcessor().getName());
 				}else {
@@ -198,7 +198,7 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 			}else{
 				//如果没有定义过算法，则采用默认的AES算法实现
 				if(algorithm.equals(EncryptAlgorithm.NONE)){
-					if(ObjectUtils.isEmpty(cnaworldMybatisPlusProperties.getFieldEncrypt().getAlgorithm())){
+					if(ObjectUtils.isEmpty(cnaworldMybatisPlusProperties.getFieldEncrypt()) || ObjectUtils.isEmpty(cnaworldMybatisPlusProperties.getFieldEncrypt().getAlgorithm())){
 						encryptAlgorithmProcessor = getEncryptAlgorithmProcessor(null,value);
 					}else {
 						encryptAlgorithmProcessor = getEncryptAlgorithmProcessor(cnaworldMybatisPlusProperties.getFieldEncrypt().getAlgorithm().name(),value);
