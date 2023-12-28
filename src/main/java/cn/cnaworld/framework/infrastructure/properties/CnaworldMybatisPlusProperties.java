@@ -2,6 +2,7 @@ package cn.cnaworld.framework.infrastructure.properties;
 
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.processor.EncryptAlgorithmProcessor;
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.statics.enums.EncryptAlgorithm;
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -82,6 +83,11 @@ public class CnaworldMybatisPlusProperties {
          * 填充值
          */
         private Object fieldValue;
+
+        /**
+         * 填充类型
+         */
+        private FieldFill fillType = FieldFill.DEFAULT;
 
         /**
          * 填充类型

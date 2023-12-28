@@ -10,7 +10,7 @@ import cn.cnaworld.framework.infrastructure.component.mybatisplus.processor.stri
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.statics.enums.EncryptAlgorithm;
 import cn.cnaworld.framework.infrastructure.properties.CnaworldMybatisPlusProperties;
 import cn.cnaworld.framework.infrastructure.utils.log.CnaLogUtil;
-import cn.cnaworld.framework.infrastructure.utils.object.CnaObjectUtil;
+import cn.cnaworld.framework.infrastructure.utils.object.CnaCheckUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -79,7 +79,7 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 
 	private void handleWrite(Object[] args) {
 		Object parameterObject = args[1];
-		if(CnaObjectUtil.notObject(parameterObject)){
+		if(CnaCheckUtil.isNotObject(parameterObject)){
 			return;
 		}
 		Map<Field, CnaFieldEncrypt> fieldMap = getEntityFieldCache(parameterObject);
@@ -120,7 +120,7 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 	private Object handleRead(Invocation invocation) throws InvocationTargetException, IllegalAccessException {
 		//执行并获取返回结果
 		Object proceed = invocation.proceed();
-		if(CnaObjectUtil.notObject(proceed)){
+		if(CnaCheckUtil.isNotObject(proceed)){
 			return proceed;
 		}
 		Map<Field, CnaFieldEncrypt> fieldMap = getEntityFieldCache(proceed);
@@ -138,7 +138,7 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 	}
 
 	private void processor(Object entity, Field field, CnaFieldEncrypt annotation,int encryptType) {
-		if (CnaObjectUtil.isEmpty(entity)){
+		if (CnaCheckUtil.isNull(entity)){
 			return;
 		}
 		try {
@@ -303,10 +303,12 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 					o = objList.get(0);
 				}
 			}
-			if(CnaObjectUtil.isEmpty(o)){
+			if(CnaCheckUtil.isNull(o)){
 				return null;
 			}
-			objClass = o.getClass();
+			if (o != null) {
+				objClass = o.getClass();
+			}
 		}else{
 			objClass = obj.getClass();
 		}
@@ -320,7 +322,7 @@ public class CnaworldAutoEncryptInterceptor implements Interceptor{
 			fieldMap= new HashMap<>();
 			for (Field field:objFields){
 				CnaFieldEncrypt annotation = field.getAnnotation(CnaFieldEncrypt.class);
-				if(annotation!=null  && CnaObjectUtil.notObjectClass(field.getType())) {
+				if(annotation!=null  && CnaCheckUtil.isNotObjectClass(field.getType())) {
 					fieldMap.put(field,annotation);
 				}
 			}

@@ -36,14 +36,14 @@ public class CnaworldBaseEntity implements Serializable {
      * 创建者
      */
     @Schema(description = "创建者")
-    @TableField("create_by_db")
+    @TableField(value = "create_by_db",fill = FieldFill.INSERT)
     private String createByDb;
 
     /**
      * 更新者
      */
     @Schema(description = "更新者")
-    @TableField("update_by_db")
+    @TableField(value = "update_by_db",fill = FieldFill.INSERT_UPDATE)
     private String updateByDb;
 
     /**
@@ -57,7 +57,7 @@ public class CnaworldBaseEntity implements Serializable {
      * 更新日期
      */
     @Schema(description = "更新日期")
-    @TableField(value = "update_time_db",fill = FieldFill.INSERT)
+    @TableField(value = "update_time_db",fill = FieldFill.INSERT_UPDATE)
     @Version
     private LocalDateTime updateTimeDb;
 

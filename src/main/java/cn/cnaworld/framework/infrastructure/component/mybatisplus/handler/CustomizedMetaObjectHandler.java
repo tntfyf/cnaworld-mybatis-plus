@@ -3,11 +3,14 @@ package cn.cnaworld.framework.infrastructure.component.mybatisplus.handler;
 import cn.cnaworld.framework.infrastructure.component.mybatisplus.handler.impl.FieldProcessor;
 import cn.cnaworld.framework.infrastructure.properties.CnaworldMybatisPlusProperties;
 import cn.cnaworld.framework.infrastructure.utils.log.CnaLogUtil;
+import cn.cnaworld.framework.infrastructure.utils.object.CnaCheckUtil;
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.reflection.MetaObject;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Timestamp;
@@ -28,7 +31,6 @@ public class CustomizedMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void insertFill(MetaObject metaObject) {
-
         try {
             //在执行mybatisPlus的insert()时，为我们自动给某些字段填充值，这样的话，我们就不需要手动给insert()里的实体类赋值了
             //需要搭配数据库规范
@@ -36,17 +38,13 @@ public class CustomizedMetaObjectHandler implements MetaObjectHandler {
                 List<CnaworldMybatisPlusProperties.FillStrategyField> fillStrategyField = cnaworldMybatisPlusProperties.getFillStrategyField();
                 if (ObjectUtils.isNotEmpty(fillStrategyField)){
                     fillStrategyField.forEach(t->{
-                        if(StringUtils.isNotBlank(t.getFieldName())){
-                            Object value = null;
-                            if (ObjectUtils.isNotEmpty(t.getFieldValue())) {
-                                value = t.getFieldValue();
-                            }else if (t.getFieldProcessorClass()!=null) {
-                                value = getFieldValueProcessor(t.getFieldName(),t.getFieldProcessorClass(),metaObject);
-                            }else if (t.getFieldClass()!=null){
-                                value = getFieldValue(t.getFieldClass());
-                            }
-                            if (ObjectUtils.isNotEmpty(value)) {
-                                this.fillStrategy(metaObject,t.getFieldName(),value);
+                        if (CnaCheckUtil.isNotNull(t.getFillType())
+                              && (t.getFillType().equals(FieldFill.INSERT) || t.getFillType().equals(FieldFill.INSERT_UPDATE))) {
+                            if(StringUtils.isNotBlank(t.getFieldName())){
+                                Object value = getValue(metaObject, t);
+                                if (ObjectUtils.isNotEmpty(value)) {
+                                    this.fillStrategy(metaObject,t.getFieldName(),value);
+                                }
                             }
                         }
                     });
@@ -59,6 +57,41 @@ public class CustomizedMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void updateFill(MetaObject metaObject) {
+        try {
+            //在执行mybatisPlus的update()时，为我们自动给某些字段填充值，这样的话，我们就不需要手动给update()里的实体类赋值了
+            //需要搭配数据库规范
+            if (cnaworldMybatisPlusProperties != null) {
+                List<CnaworldMybatisPlusProperties.FillStrategyField> fillStrategyField = cnaworldMybatisPlusProperties.getFillStrategyField();
+                if (ObjectUtils.isNotEmpty(fillStrategyField)){
+                    fillStrategyField.forEach(t->{
+                        if (CnaCheckUtil.isNotNull(t.getFillType())
+                                && (t.getFillType().equals(FieldFill.UPDATE) || t.getFillType().equals(FieldFill.INSERT_UPDATE))) {
+                            if(StringUtils.isNotBlank(t.getFieldName())){
+                                Object value = getValue(metaObject, t);
+                                if (ObjectUtils.isNotEmpty(value)) {
+                                    this.setFieldValByName(t.getFieldName(), value, metaObject);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        } catch (Exception e) {
+            CnaLogUtil.error(log,"cnaworld mybatis-plus auto-insert-fill error : {}",e.getMessage(),e);
+        }
+    }
+
+    @Nullable
+    private Object getValue(MetaObject metaObject, CnaworldMybatisPlusProperties.FillStrategyField t) {
+        Object value = null;
+        if (ObjectUtils.isNotEmpty(t.getFieldValue())) {
+            value = t.getFieldValue();
+        }else if (t.getFieldProcessorClass()!=null) {
+            value = getFieldValueProcessor(t.getFieldName(), t.getFieldProcessorClass(), metaObject);
+        }else if (t.getFieldClass()!=null){
+            value = getFieldValue(t.getFieldClass());
+        }
+        return value;
     }
 
     protected Object getFieldValue(Class<?> clazz) {
@@ -80,7 +113,6 @@ public class CustomizedMetaObjectHandler implements MetaObjectHandler {
     }
 
     private Object getFieldValueProcessor(String fieldName , Class<?> fieldProcessorClass,MetaObject metaObject) {
-
         FieldProcessor fieldProcessor;
         Object obj;
         try {
@@ -97,5 +129,4 @@ public class CustomizedMetaObjectHandler implements MetaObjectHandler {
 
         return fieldProcessor.getFieldValue(fieldName , metaObject);
     }
-
 }
