@@ -75,9 +75,14 @@ public class CnaworldMybatisPlusProperties {
     public static class FillStrategyField {
 
         /**
-         * 填充字段
+         * 填充字段全限定名称
          */
-        private String fieldName;
+        private String fieldFullName;
+
+        /**
+         * 范围填充
+         */
+        private RangeFill rangeFill;
 
         /**
          * 填充值
@@ -85,7 +90,7 @@ public class CnaworldMybatisPlusProperties {
         private Object fieldValue;
 
         /**
-         * 填充类型
+         * 填充策略
          */
         private FieldFill fillType = FieldFill.DEFAULT;
 
@@ -99,7 +104,41 @@ public class CnaworldMybatisPlusProperties {
          */
         private Class<?> fieldProcessorClass;
 
+        /**
+         * 范围填充
+         * @author Lucifer
+         * @date 2023/1/30
+         * @since 1.0
+         */
+        @Getter
+        @Setter
+        @ToString
+        public static class RangeFill {
+            /**
+             * 填充字段（批量填充）
+             * 若fieldAllName不为空，则使用全限定名称，精准填充
+             * 并且className、excludeClassName失效。
+             */
+            private String fieldName;
+
+            /**
+             * 包含要填充的类全限定名称
+             * 若不配置则默认全局填充
+             * 若配置了则仅在这些类中应用
+             * 若没配置但是配置了excludeClassName，则除excludeClassName全局填充
+             */
+            private List<String> includeClass;
+
+            /**
+             * 不包含要填充的类全限定名称
+             */
+            private List<String> excludeClass;
+        }
+
     }
+
+
+
 
     /**
      * 自动加密
