@@ -114,12 +114,13 @@ public class CnaworldMybatisPlusProperties {
         @Setter
         @ToString
         public static class RangeFill {
+
             /**
              * 填充字段（批量填充）
              * 若fieldAllName不为空，则使用全限定名称，精准填充
-             * 并且className、excludeClassName失效。
+             * 并且includeClass、excludeClass失效。
              */
-            private String fieldName;
+            private List<String> fieldNames;
 
             /**
              * 包含要填充的类全限定名称
@@ -127,12 +128,12 @@ public class CnaworldMybatisPlusProperties {
              * 若配置了则仅在这些类中应用
              * 若没配置但是配置了excludeClassName，则除excludeClassName全局填充
              */
-            private List<String> includeClass;
+            private List<Class<?>> includeClass;
 
             /**
              * 不包含要填充的类全限定名称
              */
-            private List<String> excludeClass;
+            private List<Class<?>> excludeClass;
         }
 
     }
